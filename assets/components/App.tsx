@@ -54,9 +54,9 @@ const alertReducer = (state: any, action: any) => {
         case 'close_alert':
             return { ...state, open: false };
         case 'voices_error':
-            return { open: true, alert: { severity: 'error', msg: 'Error occured while loading voices' } };
+            return { open: true, alert: { severity: 'error', msg: 'Error occurred while loading voices' } };
         case 'audio_error':
-            return { open: true, alert: { severity: 'error', msg: 'Error occured while generating audio' } };
+            return { open: true, alert: { severity: 'error', msg: 'Error occurred while generating audio' } };
         case 'generate_audio':
             return { open: true, alert: { severity: 'info', msg: 'Generating audio...', icon: 'circular-progress' } };
         case 'no_voice_selected':

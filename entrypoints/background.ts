@@ -1,15 +1,10 @@
 import { storage } from "wxt/storage";
-import Mellowtel from "mellowtel";
 const CONFIGURATION_KEY = "YzQ3ODQ0Yjg=";
 
 export default defineBackground({
   type: 'module',
   main: () => {
     if (import.meta.env.CHROME) chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: false }).catch(e => console.log(e));
-
-    const mellowtel = new Mellowtel(atob(CONFIGURATION_KEY), {
-      MAX_DAILY_RATE: 500,
-    });
 
     const onInstalled = async () => {
       if (import.meta.env.CHROME) {
@@ -28,27 +23,6 @@ export default defineBackground({
             await updateShown.setValue(true);
           }
         }
-
-        // Dynamic content script gets cleared on update
-        // https://groups.google.com/a/chromium.org/g/chromium-extensions/c/ZM0Vzb_vuIs
-        browser.scripting.unregisterContentScripts()
-          .then(async () => {
-            const permissions = await browser.permissions.getAll();
-
-            if (permissions.origins?.includes("https://*/*")) {
-              await browser.scripting.registerContentScripts([{
-                id: "mellowtel-content",
-                js: ["mellowtel-content.js"],
-                matches: ["<all_urls>"],
-                runAt: "document_start",
-                allFrames: true,
-              }]);
-              const hasOptedIn = await mellowtel.getOptInStatus();
-              if (hasOptedIn) {
-                await mellowtel.start();
-              }
-            }
-          });
       }
 
       chrome.contextMenus.removeAll(() => {
@@ -62,40 +36,6 @@ export default defineBackground({
 
     browser.runtime.onInstalled.addListener(onInstalled);
     browser.runtime.onStartup.addListener(onInstalled);
-
-    if (import.meta.env.CHROME) {
-      (async () => {
-        await mellowtel.initBackground();
-
-        const hasOptedIn = await mellowtel.getOptInStatus();
-        if (hasOptedIn) {
-          await mellowtel.start();
-        }
-      })();
-    };
-
-    browser.permissions.onAdded.addListener(async (permissions) => {
-      if (!import.meta.env.CHROME) return;
-
-      const scripts = await browser.scripting.getRegisteredContentScripts();
-      const mellowtelContentScript = scripts.find((script) => script.id === "mellowtel-content");
-
-      if (permissions.origins?.includes("https://*/*")) {
-        if (!mellowtelContentScript) {
-          await browser.scripting.registerContentScripts([{
-            id: "mellowtel-content",
-            js: ["mellowtel-content.js"],
-            matches: ["<all_urls>"],
-            runAt: "document_start",
-            allFrames: true,
-          }]);
-        }
-        const hasOptedIn = await mellowtel.getOptInStatus();
-        if (hasOptedIn) {
-          await mellowtel.start();
-        }
-      }
-    });
 
     chrome.contextMenus.onClicked.addListener(async (clickData, tab) => {
       if (clickData.menuItemId != "edgetts" || !clickData.selectionText) return;
