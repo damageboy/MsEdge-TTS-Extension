@@ -9,6 +9,8 @@ const perBrowserManifest: Record<string, any> = {
       "contextMenus",
       "sidePanel",
       "scripting",
+      "activeTab",
+      "commands",
     ],
     optional_permissions: [
       "tabs",
@@ -38,12 +40,25 @@ export default defineConfig({
       include: ['@mui/icons-material', '@emotion/styled', '@emotion/react', '@mui/material'],
     }
   }),
+  build: {
+    sourcemap: true,
+    minify: false,
+  },
   manifest: ({ browser }) => ({
     name: "MS Edge TTS (Text to Speech)",
     author: "https://github.com/yacine-bens",
     homepage_url: "https://github.com/yacine-bens/MsEdge-TTS-Extension.git",
     action: {
       "default_title": "MsEdge TTS"
+    },
+    commands: {
+      'edgettsinvoke': {
+        suggested_key: {
+          default: 'Ctrl+Shift+L',
+          mac: 'Command+Shift+L',
+        },
+        description: 'Speak selected text with MS-Edge TTS',
+      },
     },
     ...perBrowserManifest[browser],
   })

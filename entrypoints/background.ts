@@ -50,5 +50,40 @@ export default defineBackground({
         browser.browserAction.openPopup();
       }
     });
+    chrome.commands.onCommand.addListener((command) => {
+      if (command !== "edgettsinvoke") return;
+
+      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        if (tabs.length === 0 || !tabs[0].id) {
+          console.error('No active tab found.');
+          return;
+        }
+
+        const tabId = tabs[0].id;
+
+        // Inject a script to get the selected text
+        chrome.scripting.executeScript(
+          {
+            target: { tabId },
+            func: () => {
+              // Get the selected text
+              return window.getSelection()?.toString() || '';
+            },
+          },
+          (results) => {
+            if (chrome.runtime.lastError) {
+              console.error('Error executing script:', chrome.runtime.lastError);
+              return;
+            }
+
+            // Log the selected text
+            const selectedText = results?.[0]?.result;
+            if (selectedText === undefined) return;
+            const text = storage.defineItem<string>("session:text");
+            text.setValue(selectedText);
+          },
+        );
+      });
+    });
   }
 });
